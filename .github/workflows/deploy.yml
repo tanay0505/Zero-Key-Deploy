@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "infra/**"
+      - "app/**"
       - ".github/workflows/**"
 
 permissions:
@@ -23,7 +24,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: eu-west-1
+          aws-region: ap-south-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -34,6 +35,9 @@ jobs:
         working-directory: infra
         run: terraform init
 
+      - name: Terraform Validate
+        working-directory: infra
+        run: terraform validate
       - name: Terraform Plan
         working-directory: infra
         run: terraform plan
@@ -41,10 +45,3 @@ jobs:
       - name: Terraform Apply
         working-directory: infra
         run: terraform apply -auto-approve
-
-
-      - name: Refresh ASG instances
-        run: |
-            aws autoscaling start-instance-refresh \
-            --auto-scaling-group-name wesii-lab-asg \
-            --preferences '{"MinHealthyPercentage": 50}'
